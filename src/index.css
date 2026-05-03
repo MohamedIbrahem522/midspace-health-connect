@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    --primary: 213 90% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 160 35% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 20% 95%;
+    --muted-foreground: 215 15% 50%;
+
+    --accent: 160 35% 95%;
+    --accent-foreground: 160 35% 30%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 213 90% 52%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 15%;
+    --sidebar-primary: 213 90% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 95%;
+    --sidebar-accent-foreground: 215 25% 15%;
+    --sidebar-border: 214 20% 90%;
+    --sidebar-ring: 213 90% 52%;
+
+    /* Custom tokens */
+    --hero-gradient: linear-gradient(135deg, hsl(213 90% 52%), hsl(200 85% 60%), hsl(160 35% 50%));
+    --card-shadow: 0 1px 3px 0 hsl(215 25% 15% / 0.06), 0 1px 2px -1px hsl(215 25% 15% / 0.06);
+    --card-shadow-hover: 0 10px 25px -5px hsl(213 90% 52% / 0.1), 0 4px 10px -2px hsl(215 25% 15% / 0.05);
+    --card-shadow-lg: 0 10px 30px -10px hsl(215 25% 15% / 0.12);
+
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  .dark {
+    --background: 215 25% 8%;
+    --foreground: 210 20% 95%;
+    --card: 215 25% 12%;
+    --card-foreground: 210 20% 95%;
+    --popover: 215 25% 12%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 213 90% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 160 35% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 215 25% 18%;
+    --muted-foreground: 215 15% 60%;
+    --accent: 160 35% 15%;
+    --accent-foreground: 160 35% 80%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 215 25% 20%;
+    --input: 215 25% 20%;
+    --ring: 213 90% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--hero-gradient);
+  }
+  .card-shadow {
+    box-shadow: var(--card-shadow);
+  }
+  .card-shadow-hover {
+    box-shadow: var(--card-shadow-hover);
+  }
+  .card-shadow-lg {
+    box-shadow: var(--card-shadow-lg);
+  }
+}
