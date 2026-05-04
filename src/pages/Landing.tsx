@@ -3,403 +3,547 @@ import { Button } from "@/components/ui/button";
 import {
   Stethoscope,
   Building2,
-  Users,
+  HeartPulse,
   ArrowRight,
   Shield,
-  Zap,
-  Globe,
+  Users2,
+  MapPin,
+  Sun,
+  Moon,
   CheckCircle2,
+  Briefcase,
+  MessageCircle,
+  UserPlus,
+  TrendingUp,
   Star,
 } from "lucide-react";
-import { motion, useInView } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useRef, useState, useEffect } from "react";
 
-// ─── Animation variants ──────────────────────────────────────────────
-const fadeUp = {
-  hidden:  { opacity: 0, y: 24 },
-  visible: (i: number = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-  }),
-};
-
-const fadeIn = {
-  hidden:  { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.6 } },
-};
-
-// ─── Static data ─────────────────────────────────────────────────────
-const features = [
-  {
-    icon: Stethoscope,
-    title: "For Doctors",
-    desc: "Build a verified profile, browse curated job listings, and connect directly with hospitals and patients.",
-    bullets: ["Verified credentials badge", "Direct hospital outreach", "Job application tracker"],
-    color: "bg-primary/8 text-primary",
-  },
-  {
-    icon: Building2,
-    title: "For Hospitals",
-    desc: "Post open positions, review qualified applicants, and hire top medical talent — all in one place.",
-    bullets: ["Unlimited job postings", "Smart applicant filtering", "Direct messaging"],
-    color: "bg-secondary/8 text-secondary",
-  },
-  {
-    icon: Users,
-    title: "For Patients",
-    desc: "Search verified doctors by specialty, read real reviews, and book consultations with confidence.",
-    bullets: ["Verified doctor profiles", "Specialty search & filters", "Secure consultation booking"],
-    color: "bg-accent-foreground/8 text-accent-foreground",
-  },
-];
-
-const stats = [
-  { value: 10000, display: "10,000+", label: "Registered Doctors",   suffix: "+" },
-  { value: 500,   display: "500+",    label: "Partner Hospitals",     suffix: "+" },
-  { value: 50000, display: "50,000+", label: "Active Patients",       suffix: "+" },
-  { value: 98,    display: "98%",     label: "Satisfaction Rate",     suffix: "%" },
-];
-
-const values = [
-  {
-    icon: Shield,
-    title: "Trusted & Verified",
-    desc: "Every professional on MidSpace goes through a manual verification process before appearing publicly.",
-  },
-  {
-    icon: Zap,
-    title: "Instant Connections",
-    desc: "Our matching engine connects doctors with the right hospitals and patients within seconds.",
-  },
-  {
-    icon: Globe,
-    title: "Nationwide Coverage",
-    desc: "A growing network spanning every governorate — find or offer care wherever you are.",
-  },
-];
-
-const testimonials = [
-  {
-    name: "Dr. Sara Hassan",
-    role: "Cardiologist",
-    text: "Found my current position at a top hospital within two weeks of joining MidSpace.",
-    rating: 5,
-  },
-  {
-    name: "Cairo Medical Center",
-    role: "HR Department",
-    text: "We filled three specialist roles in a month. The applicant quality is significantly higher than other platforms.",
-    rating: 5,
-  },
-  {
-    name: "Ahmed Khaled",
-    role: "Patient",
-    text: "Booking a consultation with a verified specialist used to take days. Now it takes minutes.",
-    rating: 5,
-  },
-];
-
-// ─── Animated counter hook ───────────────────────────────────────────
-function useCountUp(target: number, duration = 1800, start = false) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let startTime: number;
-    const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [target, duration, start]);
-  return count;
-}
-
-function StatCounter({ stat, started }: { stat: typeof stats[0]; started: boolean }) {
-  const count = useCountUp(stat.value, 1800, started);
-  const display =
-    stat.suffix === "%"
-      ? `${count}%`
-      : count >= 1000
-      ? `${(count / 1000).toFixed(count % 1000 === 0 ? 0 : 1)}k+`
-      : `${count}+`;
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
   return (
-    <div className="text-center">
-      <p className="tabular-nums text-4xl font-extrabold text-primary">{started ? display : "0"}</p>
-      <p className="mt-1.5 text-sm font-medium text-muted-foreground">{stat.label}</p>
-    </div>
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={toggleTheme}
+      className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-secondary transition-colors"
+    >
+      {theme === "light" ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
+    </motion.button>
   );
 }
 
-// ─── Component ───────────────────────────────────────────────────────
-export default function Landing() {
-  const statsRef  = useRef<HTMLDivElement>(null);
-  const statsInView = useInView(statsRef,  { once: true, margin: "-80px" });
+function ScrollReveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
-    <div className="flex flex-col">
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
-      {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-4 pb-24 pt-20 md:pt-32">
-        {/* Grid background */}
-        <div className="absolute inset-0 bg-grid opacity-40" />
-        {/* Radial glow */}
-        <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/6 blur-3xl" />
+function AnimatedCounter({ target, suffix = "" }: { target: string; suffix?: string }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+  const [display, setDisplay] = useState("0");
 
-        <div className="container relative mx-auto max-w-5xl text-center">
-          {/* Badge */}
-          <motion.div
-            initial="hidden" animate="visible"
-            variants={fadeUp} custom={0}
-          >
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-accent px-4 py-1.5 text-sm font-medium text-accent-foreground shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-              </span>
-              Healthcare Networking Platform
-            </span>
-          </motion.div>
+  useEffect(() => {
+    if (!isInView) return;
+    const num = parseInt(target.replace(/[^0-9]/g, ""));
+    const hasPlus = target.includes("+");
+    const hasPercent = target.includes("%");
+    const hasComma = target.includes(",");
+    let current = 0;
+    const step = Math.ceil(num / 40);
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= num) {
+        current = num;
+        clearInterval(interval);
+      }
+      let formatted = current.toString();
+      if (hasComma) formatted = current.toLocaleString();
+      if (hasPlus) formatted += "+";
+      if (hasPercent) formatted += "%";
+      setDisplay(formatted);
+    }, 30);
+    return () => clearInterval(interval);
+  }, [isInView, target]);
 
-          {/* Heading */}
-          <motion.h1
-            className="mt-7 text-5xl font-extrabold tracking-tight md:text-6xl lg:text-7xl"
-            initial="hidden" animate="visible"
-            variants={fadeUp} custom={1}
-          >
-            Connecting{" "}
-            <span className="gradient-text">Healthcare</span>
-            {" "}Professionals
-          </motion.h1>
+  return <span ref={ref}>{display}</span>;
+}
 
-          {/* Sub */}
-          <motion.p
-            className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground"
-            initial="hidden" animate="visible"
-            variants={fadeUp} custom={2}
-          >
-            MidSpace bridges doctors, hospitals, and patients on one verified platform.
-            Find jobs, hire talent, or discover the right specialist — all in one place.
-          </motion.p>
+export default function Landing() {
+  const { theme } = useTheme();
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.3]);
 
-          {/* CTAs */}
-          <motion.div
-            className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
-            initial="hidden" animate="visible"
-            variants={fadeUp} custom={3}
-          >
-            <Button size="lg" className="gap-2 px-8 shadow-md shadow-primary/20" asChild>
-              <Link to="/register">
-                Get Started Free
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+  return (
+    <div className="min-h-screen bg-background">
+
+      {/* Navbar */}
+      <motion.nav
+        initial={{ y: -60 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-md"
+      >
+        <div className="container mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5">
+            <motion.div whileHover={{ rotate: 10 }} whileTap={{ scale: 0.95 }} className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <Stethoscope className="h-4 w-4 text-white" />
+            </motion.div>
+            <span className="text-base font-semibold text-foreground tracking-tight">MidSpace</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-1">
+            {[
+              { label: "Home", icon: Stethoscope, active: true },
+              { label: "Network", icon: Users2, active: false },
+              { label: "Jobs", icon: Briefcase, active: false },
+              { label: "Messaging", icon: MessageCircle, active: false },
+            ].map((link) => (
+              <motion.button
+                key={link.label}
+                whileHover={{ y: -1 }}
+                className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-lg transition-all ${
+                  link.active
+                    ? "text-primary bg-primary/5"
+                    : "text-muted-foreground hover:text-primary hover:bg-muted/50"
+                }`}
+              >
+                <link.icon className="h-5 w-5" />
+                <span className="text-[11px] font-medium">{link.label}</span>
+              </motion.button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" className="h-8 text-sm font-medium" asChild>
+              <Link to="/login">Sign in</Link>
             </Button>
-            <Button size="lg" variant="outline" className="gap-2" asChild>
-              <Link to="/search-doctors">Browse Doctors</Link>
-            </Button>
-          </motion.div>
-
-          {/* Social proof row */}
-          <motion.div
-            className="mt-10 flex items-center justify-center gap-6 text-sm text-muted-foreground"
-            initial="hidden" animate="visible"
-            variants={fadeUp} custom={4}
-          >
-            {["No credit card required", "Free for patients", "Verified professionals only"].map((t) => (
-              <span key={t} className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
-                {t}
-              </span>
-            ))}
-          </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button size="sm" className="h-8 text-sm font-medium bg-primary hover:bg-primary/90 shadow-sm" asChild>
+                <Link to="/register">Join now</Link>
+              </Button>
+            </motion.div>
+          </div>
         </div>
-      </section>
+      </motion.nav>
 
-      {/* ── Stats ────────────────────────────────────────────────── */}
-      <section className="border-y bg-card px-4 py-14" ref={statsRef}>
-        <div className="container mx-auto grid max-w-4xl grid-cols-2 gap-10 md:grid-cols-4">
-          {stats.map((s) => (
-            <StatCounter key={s.label} stat={s} started={statsInView} />
-          ))}
+      {/* Hero Section */}
+      <section ref={heroRef} className="relative py-16 md:py-24 overflow-hidden">
+
+        {/* Floating gradient orbs - continuous subtle animation */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="float-slow absolute -top-20 -left-20 h-72 w-72 rounded-full bg-primary/8 blur-3xl opacity-60" />
+          <div className="float-medium absolute top-10 right-10 h-56 w-56 rounded-full bg-cyan-400/8 blur-3xl opacity-40" />
+          <div className="float-slow absolute bottom-0 left-1/3 h-48 w-48 rounded-full bg-primary/6 blur-3xl opacity-30" style={{ animationDelay: "-7s" }} />
         </div>
-      </section>
 
-      {/* ── Features ─────────────────────────────────────────────── */}
-      <section className="px-4 py-24">
-        <div className="container mx-auto max-w-5xl">
-          <motion.div
-            className="text-center"
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true }} variants={fadeUp} custom={0}
-          >
-            <span className="text-sm font-semibold uppercase tracking-widest text-primary">
-              One Platform
-            </span>
-            <h2 className="mt-2 text-3xl font-bold md:text-4xl">Built for Every Role</h2>
-            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              Whether you're providing care, managing a hospital, or seeking treatment —
-              MidSpace has a dedicated experience for you.
-            </p>
-          </motion.div>
-
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {features.map((f, i) => (
+        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="container mx-auto max-w-6xl px-4 relative">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left */}
+            <div>
               <motion.div
-                key={f.title}
-                className="group relative overflow-hidden rounded-2xl border bg-card p-7 transition-all duration-300 card-shadow hover:card-shadow-hover hover:-translate-y-1"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                custom={i + 1}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               >
-                {/* Top accent line */}
-                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/0 via-primary to-primary/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                <div className={`flex h-13 w-13 items-center justify-center rounded-xl ${f.color} transition-transform duration-300 group-hover:scale-110`}>
-                  <f.icon className="h-6 w-6" />
-                </div>
-
-                <h3 className="mt-5 text-xl font-semibold">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
-
-                <ul className="mt-5 space-y-2">
-                  {f.bullets.map((b) => (
-                    <li key={b} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-secondary" />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary text-xs font-medium text-secondary-foreground">
+                  <motion.span
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="h-1.5 w-1.5 rounded-full bg-primary"
+                  />
+                  Verified Healthcare Network
+                </span>
               </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="mt-5 text-4xl md:text-5xl font-bold leading-tight"
+              >
+                Welcome to your
+                <br />
+                <span className="text-gradient">professional network</span>
+                <br />
+                for healthcare.
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="mt-4 text-base text-muted-foreground leading-relaxed"
+              >
+                Connect with verified doctors, find opportunities at leading hospitals,
+                and grow your healthcare career. All in one trusted platform.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="mt-6"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    className="flex-1 h-12 px-4 rounded-lg border border-border bg-card text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                </div>
+                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                  <Button className="h-12 text-sm font-medium flex-1 bg-primary hover:bg-primary/90" asChild>
+                    <Link to="/register">
+                      Get started
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </Link>
+                  </Button>
+                </motion.div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className="mt-6 flex items-center gap-4 text-xs text-muted-foreground"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-primary" />
+                  Verified only
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Users2 className="h-3.5 w-3.5 text-primary" />
+                  60,000+ members
+                </span>
+              </motion.div>
+            </div>
+
+            {/* Right - Image Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="relative"
+            >
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-2xl overflow-hidden border border-border shadow-lg"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1551076805-e1869033e561?w=700&h=500&fit=crop"
+                  alt="Healthcare professional"
+                  className="w-full h-[400px] object-cover"
+                />
+              </motion.div>
+
+              {/* Floating card 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20, x: -20 }}
+                animate={{ opacity: 1, y: 0, x: 0 }}
+                transition={{ delay: 0.7, type: "spring" }}
+                className="absolute -bottom-4 -left-4 md:-left-8 bg-card rounded-xl p-4 shadow-lg border border-border"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <UserPlus className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">+127 this week</p>
+                    <p className="text-xs text-muted-foreground">Doctors joined</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Floating card 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20, x: 20 }}
+                animate={{ opacity: 1, y: 0, x: 0 }}
+                transition={{ delay: 0.9, type: "spring" }}
+                className="absolute -top-4 -right-4 bg-card rounded-xl p-4 shadow-lg border border-border"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-7 w-7 rounded-full bg-secondary border-2 border-card flex items-center justify-center">
+                        <Stethoscope className="h-3 w-3 text-muted-foreground" />
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold">10K+ doctors</p>
+                    <p className="text-[10px] text-muted-foreground">Verified</p>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Stats Bar */}
+      <section className="border-y border-border/50 bg-secondary/30">
+        <div className="container mx-auto max-w-6xl px-4 py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { value: "10,000+", label: "Verified Doctors" },
+              { value: "500+", label: "Partner Hospitals" },
+              { value: "50,000+", label: "Active Patients" },
+              { value: "98%", label: "Match Success Rate" },
+            ].map((s, i) => (
+              <ScrollReveal key={s.label} delay={i * 0.08}>
+                <div className="text-center">
+                  <p className="text-2xl md:text-3xl font-bold text-primary">
+                    <AnimatedCounter target={s.value} />
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Why MidSpace ─────────────────────────────────────────── */}
-      <section className="border-t bg-muted/40 px-4 py-24">
-        <div className="container mx-auto max-w-5xl">
-          <motion.div
-            className="text-center"
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true }} variants={fadeUp}
-          >
-            <h2 className="text-3xl font-bold">Why Professionals Choose MidSpace</h2>
-            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              We built MidSpace on three principles that make a real difference.
-            </p>
-          </motion.div>
-
-          <div className="mt-14 grid gap-8 md:grid-cols-3">
-            {values.map((v, i) => (
-              <motion.div
-                key={v.title}
-                className="flex gap-4"
-                initial="hidden" whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp} custom={i}
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/10">
-                  <v.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">{v.title}</h4>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{v.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ─────────────────────────────────────────── */}
-      <section className="px-4 py-24">
-        <div className="container mx-auto max-w-5xl">
-          <motion.div
-            className="text-center"
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true }} variants={fadeUp}
-          >
-            <h2 className="text-3xl font-bold">What Our Users Say</h2>
-          </motion.div>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={t.name}
-                className="rounded-2xl border bg-card p-6 card-shadow"
-                initial="hidden" whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp} custom={i}
-              >
-                <div className="flex gap-0.5">
-                  {Array.from({ length: t.rating }).map((_, j) => (
-                    <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">"{t.text}"</p>
-                <div className="mt-4 border-t pt-4">
-                  <p className="text-sm font-semibold">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.role}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA ──────────────────────────────────────────────────── */}
-      <section className="px-4 py-24">
-        <div className="container mx-auto max-w-3xl">
-          <motion.div
-            className="relative overflow-hidden rounded-3xl border bg-card p-12 text-center card-shadow-lg"
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true }} variants={fadeIn}
-          >
-            {/* Background glow */}
-            <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/6 blur-3xl" />
-            <div className="relative">
-              <h2 className="text-3xl font-bold">Ready to Get Started?</h2>
-              <p className="mt-3 text-muted-foreground">
-                Join thousands of healthcare professionals already using MidSpace.
-                Your account is free and takes under 2 minutes to create.
+      {/* Who we serve */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto max-w-6xl px-4">
+          <ScrollReveal>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold">Who we serve</h2>
+              <p className="mt-2 text-muted-foreground max-w-lg mx-auto">
+                A platform designed for every healthcare professional.
               </p>
-              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button size="lg" className="gap-2 px-8 shadow-md shadow-primary/20" asChild>
-                  <Link to="/register">
-                    Create Free Account
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link to="/search-doctors">Explore as Guest</Link>
-                </Button>
-              </div>
             </div>
-          </motion.div>
+          </ScrollReveal>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              {
+                icon: Stethoscope,
+                title: "For Doctors",
+                desc: "Build your verified profile, browse curated job listings, and connect directly with hospitals.",
+                bullets: ["Verified credentials", "Job application tracker", "Direct hospital outreach"],
+                img: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=250&fit=crop",
+                color: "text-primary",
+                bg: "bg-primary/10",
+              },
+              {
+                icon: Building2,
+                title: "For Hospitals",
+                desc: "Post open positions, review qualified applicants, and hire top medical talent.",
+                bullets: ["Unlimited postings", "Smart filtering", "Built-in messaging"],
+                img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=250&fit=crop",
+                color: "text-blue-600",
+                bg: "bg-blue-50 dark:bg-blue-950/30",
+              },
+              {
+                icon: HeartPulse,
+                title: "For Patients",
+                desc: "Search verified doctors by specialty, read reviews, and book consultations.",
+                bullets: ["Verified profiles", "Specialty search", "Secure booking"],
+                img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=250&fit=crop",
+                color: "text-emerald-600",
+                bg: "bg-emerald-50 dark:bg-emerald-950/30",
+              },
+            ].map((card, i) => (
+              <ScrollReveal key={card.title} delay={i * 0.1}>
+                <motion.div
+                  whileHover={{ y: -6 }}
+                  transition={{ duration: 0.3 }}
+                  className="group rounded-xl border bg-card overflow-hidden card-hover"
+                >
+                  {/* Image */}
+                  <div className="relative h-36 overflow-hidden">
+                    <motion.img
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.5 }}
+                      src={card.img}
+                      alt={card.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
+                    <div className="absolute top-3 left-3">
+                      <div className={`h-9 w-9 rounded-lg ${card.bg} flex items-center justify-center`}>
+                        <card.icon className={`h-4 w-4 ${card.color}`} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-5">
+                    <h3 className="font-semibold text-base">{card.title}</h3>
+                    <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
+
+                    <ul className="mt-3 space-y-2">
+                      {card.bullets.map((b) => (
+                        <li key={b} className="flex items-center gap-2 text-xs">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                          <span className="text-muted-foreground">{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              </ScrollReveal>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────── */}
-      <footer className="border-t bg-card px-4 py-10">
-        <div className="container mx-auto max-w-5xl">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div className="flex items-center gap-2 font-bold text-foreground">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg gradient-primary">
-                <Stethoscope className="h-3.5 w-3.5 text-white" />
+      {/* Why trust us */}
+      <section className="py-16 bg-secondary/30">
+        <div className="container mx-auto max-w-6xl px-4">
+          <ScrollReveal>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold">Why professionals trust us</h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { icon: Shield, title: "Manual verification", desc: "Every credential reviewed by our medical board." },
+              { icon: TrendingUp, title: "Fast connections", desc: "Average match time: under 48 hours." },
+              { icon: MapPin, title: "Nationwide reach", desc: "Covering all 27 governorates across Egypt." },
+            ].map((item, i) => (
+              <ScrollReveal key={item.title} delay={i * 0.1}>
+                <div className="flex flex-col items-center text-center">
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3"
+                  >
+                    <item.icon className="h-6 w-6 text-primary" />
+                  </motion.div>
+                  <h4 className="font-semibold text-base">{item.title}</h4>
+                  <p className="mt-1.5 text-sm text-muted-foreground">{item.desc}</p>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto max-w-6xl px-4">
+          <ScrollReveal>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold">What our members say</h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              {
+                name: "Dr. Sara Hassan",
+                role: "Cardiologist",
+                text: "Found my current position at a top hospital within two weeks. The verification process gave hospitals confidence in my profile.",
+                img: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face",
+                rating: 5,
+              },
+              {
+                name: "Cairo Medical Center",
+                role: "HR Department",
+                text: "We filled three specialist roles in a month. The applicant quality is significantly higher than other platforms.",
+                img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=100&h=100&fit=crop",
+                rating: 5,
+              },
+              {
+                name: "Ahmed Khaled",
+                role: "Patient",
+                text: "Booking a consultation with a verified specialist used to take days. Now I can find the right doctor in minutes.",
+                img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+                rating: 5,
+              },
+            ].map((t, i) => (
+              <ScrollReveal key={t.name} delay={i * 0.1}>
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  className="rounded-xl border bg-card p-5 card-hover"
+                >
+                  <div className="flex gap-0.5 mb-3">
+                    {[...Array(t.rating)].map((_, j) => (
+                      <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">"{t.text}"</p>
+                  <div className="flex items-center gap-2.5 pt-3 border-t border-border/50">
+                    <img src={t.img} alt={t.name} className="h-9 w-9 rounded-full object-cover" />
+                    <div>
+                      <p className="text-sm font-medium">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{t.role}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto max-w-6xl px-4">
+          <ScrollReveal>
+            <motion.div
+              whileHover={{ scale: 1.005 }}
+              className="rounded-xl border border-border bg-card p-8 md:p-12 text-center"
+            >
+              <h2 className="text-2xl md:text-3xl font-bold">
+                Ready to get started?
+              </h2>
+              <p className="mt-2 text-muted-foreground max-w-md mx-auto">
+                Join thousands of healthcare professionals already using MidSpace.
+              </p>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button className="h-10 text-sm bg-primary hover:bg-primary/90" asChild>
+                    <Link to="/register">
+                      Join now
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </Link>
+                  </Button>
+                </motion.div>
+                <Button variant="outline" className="h-10 text-sm" asChild>
+                  <Link to="/search-doctors">Browse doctors</Link>
+                </Button>
               </div>
-              MidSpace
+            </motion.div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border/50 py-10">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="h-5 w-5 rounded bg-primary flex items-center justify-center">
+                <Stethoscope className="h-3 w-3 text-white" />
+              </div>
+              <span className="text-xs font-semibold">MidSpace</span>
+              <span className="text-xs text-muted-foreground ml-1">© 2026</span>
             </div>
-            <div className="flex gap-6 text-sm text-muted-foreground">
-              <Link to="/search-doctors" className="link-underline hover:text-foreground transition-colors">Find Doctors</Link>
-              <Link to="/register"       className="link-underline hover:text-foreground transition-colors">Sign Up</Link>
-              <Link to="/login"          className="link-underline hover:text-foreground transition-colors">Login</Link>
+            <div className="flex items-center gap-5 text-xs text-muted-foreground">
+              <Link to="/search-doctors" className="hover:text-foreground transition-colors">Find Doctors</Link>
+              <Link to="/register" className="hover:text-foreground transition-colors">Sign Up</Link>
+              <Link to="/login" className="hover:text-foreground transition-colors">Login</Link>
             </div>
-            <p className="text-sm text-muted-foreground">© 2026 MidSpace. All rights reserved.</p>
           </div>
         </div>
       </footer>

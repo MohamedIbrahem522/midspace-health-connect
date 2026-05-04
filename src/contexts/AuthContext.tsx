@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 export type UserRole = "doctor" | "hospital" | "patient" | "admin";
 
@@ -15,6 +15,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string, role: UserRole) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -26,21 +27,43 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem("midspace_user");
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = useCallback((email: string, _password: string, role: UserRole) => {
-    const u: User = { id: crypto.randomUUID(), name: email.split("@")[0], email, role };
-    setUser(u);
-    localStorage.setItem("midspace_user", JSON.stringify(u));
+  useEffect(() => {
+    const stored = localStorage.getItem("midspace_user");
+
+    if (stored) {
+      setUser(JSON.parse(stored));
+    }
+
+    setLoading(false);
   }, []);
 
-  const register = useCallback((name: string, email: string, _password: string, role: UserRole) => {
-    const u: User = { id: crypto.randomUUID(), name, email, role };
+  const login = useCallback((email: string, password: string, role: UserRole) => {
+    const u: User = {
+      id: crypto.randomUUID(),
+      name: email.split("@")[0],
+      email,
+      role,
+    };
+
     setUser(u);
     localStorage.setItem("midspace_user", JSON.stringify(u));
+    localStorage.setItem("midspace_token", `mock_token_${email}`);
+  }, []);
+
+  const register = useCallback((name: string, email: string, password: string, role: UserRole) => {
+    const u: User = {
+      id: crypto.randomUUID(),
+      name,
+      email,
+      role,
+    };
+
+    setUser(u);
+    localStorage.setItem("midspace_user", JSON.stringify(u));
+    localStorage.setItem("midspace_token", `mock_token_${email}`);
   }, []);
 
   const logout = useCallback(() => {
@@ -49,7 +72,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        isAuthenticated: !!user,
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,5 @@
 import {
   Stethoscope,
-  Building2,
-  User,
   LayoutDashboard,
   UserCircle,
   Briefcase,
@@ -10,15 +8,17 @@ import {
   ClipboardList,
   UserCheck,
   Search,
-  ShieldCheck,
   Users,
   Activity,
   LogOut,
+  HeartPulse,
+  Calendar,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Sidebar,
   SidebarContent,
@@ -29,47 +29,39 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
-
-const roleIcon: Record<UserRole, typeof Stethoscope> = {
-  doctor: Stethoscope,
-  hospital: Building2,
-  patient: User,
-  admin: ShieldCheck,
-};
-
-const roleLabel: Record<UserRole, string> = {
-  doctor: "Doctor Portal",
-  hospital: "Hospital Portal",
-  patient: "Patient Portal",
-  admin: "Admin Panel",
-};
+import { Separator } from "@/components/ui/separator";
 
 const roleLinks: Record<UserRole, { to: string; label: string; icon: typeof Stethoscope }[]> = {
   doctor: [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/profile", label: "My Profile", icon: UserCircle },
-    { to: "/jobs", label: "Job Board", icon: Briefcase },
-    { to: "/my-applications", label: "My Applications", icon: ClipboardList },
-    { to: "/messages", label: "Messages", icon: MessageSquare },
+    { to: "/my-profile", label: "My Profile", icon: UserCircle },
+    { to: "/profile", label: "Edit Profile", icon: UserCheck },
+    { to: "/jobs", label: "Jobs", icon: Briefcase },
+    { to: "/my-applications", label: "Applications", icon: ClipboardList },
+    { to: "/messages", label: "Messaging", icon: MessageSquare },
   ],
   hospital: [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/post-job", label: "Post Job", icon: PlusCircle },
     { to: "/manage-jobs", label: "Manage Jobs", icon: ClipboardList },
     { to: "/applicants", label: "Applicants", icon: UserCheck },
-    { to: "/doctor-directory", label: "Doctor Directory", icon: Search },
-    { to: "/messages", label: "Messages", icon: MessageSquare },
+    { to: "/doctor-directory", label: "Directory", icon: Search },
+    { to: "/messages", label: "Messaging", icon: MessageSquare },
   ],
   patient: [
+    { to: "/patient/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/search-doctors", label: "Find Doctors", icon: Search },
+    { to: "/patient/appointments", label: "Appointments", icon: Calendar },
+    { to: "/patient/profile", label: "My Health", icon: HeartPulse },
     { to: "/messages", label: "Messages", icon: MessageSquare },
   ],
   admin: [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/admin/users", label: "User Management", icon: Users },
-    { to: "/admin/insights", label: "System Insights", icon: Activity },
+    { to: "/admin/users", label: "Users", icon: Users },
+    { to: "/admin/insights", label: "Insights", icon: Activity },
   ],
 };
 
@@ -83,70 +75,87 @@ export function AppSidebar() {
   if (!user) return null;
 
   const links = roleLinks[user.role];
-  const Icon = roleIcon[user.role];
+  const initials = user.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarContent>
-        {/* Brand */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <div className="flex items-center gap-2 px-2 py-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Stethoscope className="h-4 w-4" />
-              </div>
-              {!collapsed && <span className="text-lg font-bold text-foreground">MidSpace</span>}
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarHeader className="px-3 py-3">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
+            <Stethoscope className="h-4 w-4 text-white" />
+          </div>
+          {!collapsed && <span className="text-base font-semibold text-foreground">MidSpace</span>}
+        </div>
+      </SidebarHeader>
 
-        {/* Role section */}
+      <Separator className="opacity-20" />
+
+      <SidebarContent className="px-2 py-2">
         <SidebarGroup>
-          <SidebarGroupLabel>
-            <Icon className="mr-2 h-4 w-4" />
-            {!collapsed && roleLabel[user.role]}
-          </SidebarGroupLabel>
+          {!collapsed && (
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/50">
+              Menu
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
-              {links.map((item) => (
-                <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === item.to}
-                  >
-                    <NavLink
-                      to={item.to}
-                      end
-                      className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+            <SidebarMenu className="space-y-0.5">
+              {links.map((item) => {
+                const isActive = location.pathname === item.to;
+                return (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.label}
+                      className={`h-9 rounded-lg text-sm transition-all ${
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
+                      }`}
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.label}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <NavLink to={item.to} end>
+                        <item.icon className="h-4 w-4" strokeWidth={isActive ? 2 : 1.5} />
+                        {!collapsed && <span className="text-[13px]">{item.label}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className="flex items-center gap-2 px-2 py-2">
+      <Separator className="opacity-20" />
+
+      <SidebarFooter className="px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8 border border-sidebar-border/30">
+            <AvatarFallback className="text-xs bg-primary/20 text-primary font-medium">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
           {!collapsed && (
-            <div className="flex-1 truncate">
-              <p className="truncate text-sm font-medium">{user.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-            </div>
+            <>
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-sm font-medium">{user.name}</p>
+                <p className="truncate text-xs text-muted-foreground/60">{user.email}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground/50 hover:text-foreground"
+                onClick={() => { logout(); navigate("/"); }}
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0"
-            onClick={() => { logout(); navigate("/"); }}
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
         </div>
       </SidebarFooter>
     </Sidebar>
