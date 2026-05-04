@@ -13,7 +13,6 @@ import {
   UserPlus,
   TrendingUp,
   Star,
-  Search,
   Users2,
 } from "lucide-react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
@@ -96,35 +95,50 @@ export default function Landing() {
         initial={{ y: -60 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-md"
+        className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/30"
       >
-        <div className="container mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <motion.div whileHover={{ rotate: 10 }} whileTap={{ scale: 0.95 }} className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
-              <Stethoscope className="h-4 w-4 text-white" />
-            </motion.div>
-            <span className="text-base font-semibold text-foreground tracking-tight">MidSpace</span>
+        <div className="container mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <Stethoscope className="h-4 w-4 text-primary" />
+            </div>
+            <span className="text-lg font-semibold text-foreground tracking-tight">MidSpace</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
-            <Link to="/search-doctors">
-              <motion.div whileHover={{ y: -1 }} className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-lg transition-all text-muted-foreground hover:text-primary hover:bg-muted/50">
-                <Search className="h-5 w-5" />
-                <span className="text-[11px] font-medium">Find Doctors</span>
-              </motion.div>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" className="h-8 text-sm font-medium" asChild>
-              <Link to="/login">Sign in</Link>
-            </Button>
+          {/* Nav links */}
+          <div className="hidden md:flex items-center gap-2">
+            {[
+              { label: "Find Doctors", href: "/search-doctors" },
+              { label: "Sign in", href: "/login" },
+            ].map((link) => (
+              <Link
+                to={link.href}
+                key={link.label}
+                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50"
+              >
+                {link.label}
+              </Link>
+            ))}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button size="sm" className="h-8 text-sm font-medium bg-primary hover:bg-primary/90 shadow-sm" asChild>
-                <Link to="/register">Join now</Link>
+              <Button size="sm" className="ml-1 h-9 text-sm bg-primary hover:bg-primary/90 shadow-sm" asChild>
+                <Link to="/register">
+                  Get started
+                  <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Link>
               </Button>
             </motion.div>
+          </div>
+
+          {/* Mobile */}
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+              <Link to="/login">
+                <span className="sr-only">Sign in</span>
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13 12H3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </Link>
+            </Button>
           </div>
         </div>
       </motion.nav>
