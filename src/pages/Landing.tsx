@@ -6,16 +6,16 @@ import {
   HeartPulse,
   ArrowRight,
   Shield,
-  Users2,
   MapPin,
   Sun,
   Moon,
   CheckCircle2,
-  Briefcase,
-  MessageCircle,
   UserPlus,
   TrendingUp,
   Star,
+  Search,
+  Hospital,
+  Info,
 } from "lucide-react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -109,23 +109,20 @@ export default function Landing() {
 
           <div className="hidden md:flex items-center gap-1">
             {[
-              { label: "Home", icon: Stethoscope, active: true },
-              { label: "Network", icon: Users2, active: false },
-              { label: "Jobs", icon: Briefcase, active: false },
-              { label: "Messaging", icon: MessageCircle, active: false },
+              { label: "Home", icon: HeartPulse, href: "/" },
+              { label: "Find Doctors", icon: Search, href: "/search-doctors" },
+              { label: "Directory", icon: Hospital, href: "/doctor-directory" },
+              { label: "About", icon: Info, href: "#about" },
             ].map((link) => (
-              <motion.button
-                key={link.label}
-                whileHover={{ y: -1 }}
-                className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-lg transition-all ${
-                  link.active
-                    ? "text-primary bg-primary/5"
-                    : "text-muted-foreground hover:text-primary hover:bg-muted/50"
-                }`}
-              >
-                <link.icon className="h-5 w-5" />
-                <span className="text-[11px] font-medium">{link.label}</span>
-              </motion.button>
+              <Link to={link.href} key={link.label}>
+                <motion.div
+                  whileHover={{ y: -1 }}
+                  className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-lg transition-all text-muted-foreground hover:text-primary hover:bg-muted/50"
+                >
+                  <link.icon className="h-5 w-5" />
+                  <span className="text-[11px] font-medium">{link.label}</span>
+                </motion.div>
+              </Link>
             ))}
           </div>
 
