@@ -11,8 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "predeploy": "npm run build && node -e \"require('fs').writeFileSync('dist/.nojekyll','')\"",
+    "deploy": "gh-pages -d dist --dotfiles"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -49,7 +49,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^12.38.0",
+    "framer-motion": "^11.18.2",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.8.0",
     "next-themes": "^0.3.0",

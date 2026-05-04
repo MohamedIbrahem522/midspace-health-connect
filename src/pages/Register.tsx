@@ -132,7 +132,7 @@ export default function Register() {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Dr. Sara Hassan"
+                  placeholder="Dr. Sara"
                   required
                   className="h-10 text-sm"
                 />
